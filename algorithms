@@ -1,0 +1,54 @@
+from tkinter import *
+from tkinter.ttk import Combobox
+
+
+class GUI:
+    def __init__(self):
+        self.root = Tk()
+        self.root.title('Нахождение слов')
+        self.root.geometry("770x500+450+200")
+        self.root.minsize(650, 400)
+        self.text = Text(self.root, width=80, height=10, bg="white", fg='black', wrap=WORD)
+        self.l_result = Label(self.root, text="Результат:", fg="#30546d", font=('Bahnschrift Condensed', 20))
+        self.l_result1 = Label(self.root, fg="#30546d", font=('Bahnschrift Condensed', 15))
+        self.btn = Button(self.root, text="Найти", bg="#6db0b3", fg="#30546d", font=('Bahnschrift Condensed', 20),
+                          activebackground="#4E878D", command=self.result_search)
+        self.entry_word = Entry(self.root, fg="black", font=('Arial', 14), width=50)
+        self.combobox = Combobox(self.root, values=['Ахо Корасик', 'Кнут Моррис Пратт', 'Бойер Мур'], font="Arial 20",
+                                 state="readonly",
+                                 justify='center', width=50)
+
+        self.fill(1)
+        self.combobox.bind("<<ComboboxSelected>>", self.fill)
+
+    def fill(self, event):
+        """
+        эта функция заполняет интерфейс с днями, номером пар и заполняет ячейки внутри таблицы значениями выбранной
+        группы, если пользователь выбирает группу
+        """
+        self.ind_combobox = self.combobox.current()
+        self.text.place(x=50, y=80)
+        self.entry_word.place(x=100, y=300)
+        self.btn.place(x=300, y=400, width=150)
+        self.combobox.place(x=0, y=0)
+        self.l_result.place(x=100, y=320)
+        self.l_result1.place(x=210, y=328)
+
+    def result_search(self):
+        get_text = self.text.get(0.1, END).split()
+        if self.ind_combobox != 0:
+            get_entry = [self.entry_word.get().split()[0]]
+        else:
+            get_entry = self.entry_word.get().split()
+        i = 0
+        str_result = ""
+        self.l_result1.config(text=0)
+        for word in get_text:
+            i += 1
+            if word in get_entry:
+                str_result += str(i)
+                self.l_result1.config(text=str_result)
+
+
+a = GUI()
+a.root.mainloop()
