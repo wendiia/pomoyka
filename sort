@@ -1,0 +1,184 @@
+from tkinter import *
+from tkinter.ttk import Combobox
+
+
+class GUI:
+    def __init__(self):
+        """ Инициализация главного окна"""
+        self.root = Tk()
+        self.root.title('Нахождение слов')
+        self.root.minsize(775, 350)
+
+        self.hat = Label(self.root, width=60, text="Выберите алгоритм нахождения:", fg="white", bg="#1E4E5C",
+                         font=('Bahnschrift Condensed', 25))
+        self.l_result = Label(self.root, text="Результат:", fg="#30546d", font=('Bahnschrift Condensed', 20))
+        self.sort_mas = Label(self.root, fg="#30546d", font=('Bahnschrift Condensed', 20))
+        self.btn_search = Button(self.root, text="Отсортировать", bg="#6db0b3", fg="#30546d",
+                                 font=('Bahnschrift Condensed', 20),
+                                 activebackground="#4E878D", command=self.result_search)
+        self.entry_mas = Entry(self.root, fg="black", font=('Arial', 14), width=50)
+        self.combobox = Combobox(self.root, values=['Пузырек', 'Слиянием', 'Шелла', 'Быстрая'], font="Arial 20",
+                                 state="readonly",
+                                 justify='center', width=50)
+
+        self.fill(1)  # если еще не выбран алгоритм в комбобоксе
+        self.combobox.bind("<<ComboboxSelected>>", self.fill)
+
+    def fill(self, event):
+        """ Заполнение окна виджетами"""
+        self.ind_combobox = self.combobox.current()
+        if event == 1:  # если еще не выбран алгоритм в комбобоксе
+            self.combobox.place(x=0, y=45)
+            self.hat.place(x=0, y=0)
+
+        else:  # при выборе алгоритма появляются дополнительные виджеты
+            self.entry_mas.place(x=100, y=100)
+            self.btn_search.place(x=300, y=200, width=200)
+            self.l_result.place(x=100, y=140)
+            self.sort_mas.place(x=210, y=140)
+
+    def result_search(self):
+        """
+        Происзводит соответствие с выбранным алгоритмом и выполняет поиск по выбранному алгоритму,
+        выаодит результат на окно
+        """
+        entry_mas = self.entry_mas.get()
+        entry_mas = entry_mas.split()
+        print(entry_mas)
+        self.sort_mas.config(text="")
+
+        if len(entry_mas) == 0:
+            self.sort_mas.config(text="Введите массив")
+
+        else:
+            if self.ind_combobox == 0:
+                self.sort_mas.config(text=" ".join(bubble_sort(entry_mas)))
+            elif self.ind_combobox == 1:
+                self.sort_mas.config(text=" ".join('1'))
+            elif self.ind_combobox == 2:
+                self.sort_mas.config(text=" ".join('2'))
+            elif self.ind_combobox == 3:
+                self.sort_mas.config(text=" ".join('3'))
+
+
+def bubble_sort(arr):
+
+    def swap(y, j):
+        arr[y], arr[j] = arr[j], arr[y]
+
+    n = len(arr)
+    swapped = True
+
+    x = -1
+    while swapped:
+        swapped = False
+        x = x + 1
+        for i in range(1, n - x):
+            if arr[i - 1] > arr[i]:
+                swap(i - 1, i)
+                swapped = True
+    return arr
+
+
+def kmp(s, w):
+    """ Поиск слова алгоритмом Кнута-Морриса-Пратта (КМП)"""
+    result = []
+    n = len(s)
+    m = len(w)
+    p = [0] * m
+
+    def form_p():
+        """ Формирование массива p, в котором находятся длины совпадающих суффиксов относительно i-го эл. образа"""
+        j = 0
+        i = 1
+        while i < m:
+            if w[i] == w[j]:
+                p[i] = j + 1
+                i += 1
+                j += 1
+            elif j == 0:
+                p[i] = 0
+                i += 1
+            else:
+                j = p[j - 1]
+
+    def search_kmp():
+        """ Производит поиск и возвращает список с индексами вхождений найденных слов"""
+        i = 0
+        j = 0
+        while i < n:
+            if s[i] == w[j]:
+                i += 1
+                j += 1
+                if j == m:
+                    result.append(str(i - m))
+                    j = 0
+            else:
+                if j > 0:
+                    j = p[j - 1]
+                else:
+                    i += 1
+
+        if len(result) == 0:
+            return "Такого слова нет"
+        else:
+            return result
+
+    form_p()
+    return search_kmp()
+
+
+def bmh(s, w):
+    """ Поиск слова алгоритмом Бойера-Мура (БМХ)"""
+    m = len(w)  # число символов в образе
+    n = len(s)
+    d = {}  # словарь смещений
+
+    def form_offset():
+        """Формирование таблицы смещений от последнего символа в боразе"""
+        unic_set = set()  # уникальные символы в образе
+        for x in range(m - 2, -1, -1):  # итерации с предпоследнего символа
+            if w[x] not in unic_set:  # если символ еще не добавлен в таблицу
+                d[w[x]] = m - x - 1
+                unic_set.add(w[x])
+
+        if w[m - 1] not in unic_set:  # отдельно формируем последний символ
+            d[w[m - 1]] = m
+
+        d['*'] = m  # смещения для прочих символов
+
+    def search_bmh():
+        """ Производит поиск и возвращает список с индексами вхождений найденных слов"""
+        res = []  # для хранения индексов найденных слов
+        if n >= m:
+            i = m - 1  # счетчик проверяемого символа в строке
+            while i < n:
+                k = 0
+                flag = False
+                for j in range(m - 1, -1, -1):
+                    if s[i - k] != w[j]:
+                        if j == m - 1:
+                            pos = d[s[i]] if d.get(s[i], False) else d['*']
+                        else:
+                            pos = d[w[j]]  # смещение, если не равен не последний символ образа
+                        i += pos  # смещение счетчика строки
+                        flag = True  # если несовпадение символа, то flag = True
+                        break
+                    k += 1  # смещение для сравниваемого символа в строке
+                if not flag:  # если дошли до начала образа, значит, все его символы совпали
+                    res.append(str(i - k + 1))
+                    i += m
+        else:
+            print("Такого слова нет")
+
+        if len(res) == 0:
+            return "Такого слова нет"
+        else:
+            return res
+
+    form_offset()
+    return search_bmh()
+
+
+a = GUI()
+a.root.mainloop()
