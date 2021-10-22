@@ -17,7 +17,7 @@ class GUI:
                                  font=('Bahnschrift Condensed', 20),
                                  activebackground="#4E878D", command=self.result_search)
         self.entry_mas = Entry(self.root, fg="black", font=('Arial', 14), width=50)
-        self.combobox = Combobox(self.root, values=['Пузырек', 'Слиянием', 'Шелла', 'Быстрая'], font="Arial 20",
+        self.combobox = Combobox(self.root, values=['Пузырек', 'Слиянием', 'Быстрая', 'Шелла'], font="Arial 20",
                                  state="readonly",
                                  justify='center', width=50)
 
@@ -42,9 +42,8 @@ class GUI:
         Происзводит соответствие с выбранным алгоритмом и выполняет поиск по выбранному алгоритму,
         выаодит результат на окно
         """
-        entry_mas = self.entry_mas.get()
-        entry_mas = entry_mas.split()
-        print(entry_mas)
+        entry_mas = self.entry_mas.get().split()
+        entry_mas = [int(x) for x in entry_mas]
         self.sort_mas.config(text="")
 
         if len(entry_mas) == 0:
@@ -52,13 +51,13 @@ class GUI:
 
         else:
             if self.ind_combobox == 0:
-                self.sort_mas.config(text=" ".join(bubble_sort(entry_mas)))
+                self.sort_mas.config(text=bubble_sort(entry_mas))
             elif self.ind_combobox == 1:
-                self.sort_mas.config(text=" ".join('1'))
+                self.sort_mas.config(text=merge_sort(entry_mas))
             elif self.ind_combobox == 2:
-                self.sort_mas.config(text=" ".join('2'))
+                self.sort_mas.config(text=quick_sort(entry_mas))
             elif self.ind_combobox == 3:
-                self.sort_mas.config(text=" ".join('3'))
+                self.sort_mas.config(text=shell(entry_mas))
 
 
 def bubble_sort(arr):
@@ -80,105 +79,77 @@ def bubble_sort(arr):
     return arr
 
 
-def kmp(s, w):
-    """ Поиск слова алгоритмом Кнута-Морриса-Пратта (КМП)"""
-    result = []
-    n = len(s)
-    m = len(w)
-    p = [0] * m
+def merge_sort(arr):
+    # Последнее разделение массива
+    if len(arr) <= 1:
+        return arr
+    mid = len(arr) // 2
+    # Выполняем merge_sort рекурсивно с двух сторон
+    left, right = merge_sort(arr[:mid]), merge_sort(arr[mid:])
 
-    def form_p():
-        """ Формирование массива p, в котором находятся длины совпадающих суффиксов относительно i-го эл. образа"""
-        j = 0
-        i = 1
-        while i < m:
-            if w[i] == w[j]:
-                p[i] = j + 1
-                i += 1
-                j += 1
-            elif j == 0:
-                p[i] = 0
-                i += 1
-            else:
-                j = p[j - 1]
+    # Объединяем стороны вместе
+    return merge(left, right, arr.copy())
 
-    def search_kmp():
-        """ Производит поиск и возвращает список с индексами вхождений найденных слов"""
-        i = 0
-        j = 0
-        while i < n:
-            if s[i] == w[j]:
-                i += 1
-                j += 1
-                if j == m:
-                    result.append(str(i - m))
-                    j = 0
-            else:
-                if j > 0:
-                    j = p[j - 1]
-                else:
-                    i += 1
 
-        if len(result) == 0:
-            return "Такого слова нет"
+def merge(left, right, merged):
+    left_cursor, right_cursor = 0, 0
+    while left_cursor < len(left) and right_cursor < len(right):
+
+        # Сортируем каждый и помещаем в результат
+        if left[left_cursor] <= right[right_cursor]:
+            merged[left_cursor + right_cursor] = left[left_cursor]
+            left_cursor += 1
         else:
-            return result
+            merged[left_cursor + right_cursor] = right[right_cursor]
+            right_cursor += 1
 
-    form_p()
-    return search_kmp()
+    for left_cursor in range(left_cursor, len(left)):
+        merged[left_cursor + right_cursor] = left[left_cursor]
+
+    for right_cursor in range(right_cursor, len(right)):
+        merged[left_cursor + right_cursor] = right[right_cursor]
+
+    return merged
 
 
-def bmh(s, w):
-    """ Поиск слова алгоритмом Бойера-Мура (БМХ)"""
-    m = len(w)  # число символов в образе
-    n = len(s)
-    d = {}  # словарь смещений
+def partition(array, begin, end):
+    pivot_idx = begin
+    for i in range(begin + 1, end + 1):
+        if array[i] <= array[begin]:
+            pivot_idx += 1
+            array[i], array[pivot_idx] = array[pivot_idx], array[i]
+    array[pivot_idx], array[begin] = array[begin], array[pivot_idx]
+    return pivot_idx
 
-    def form_offset():
-        """Формирование таблицы смещений от последнего символа в боразе"""
-        unic_set = set()  # уникальные символы в образе
-        for x in range(m - 2, -1, -1):  # итерации с предпоследнего символа
-            if w[x] not in unic_set:  # если символ еще не добавлен в таблицу
-                d[w[x]] = m - x - 1
-                unic_set.add(w[x])
 
-        if w[m - 1] not in unic_set:  # отдельно формируем последний символ
-            d[w[m - 1]] = m
+def quick_sort_recursion(array, begin, end):
+    if begin >= end:
+        return
+    pivot_idx = partition(array, begin, end)
+    quick_sort_recursion(array, begin, pivot_idx - 1)
+    quick_sort_recursion(array, pivot_idx + 1, end)
+    return array
 
-        d['*'] = m  # смещения для прочих символов
 
-    def search_bmh():
-        """ Производит поиск и возвращает список с индексами вхождений найденных слов"""
-        res = []  # для хранения индексов найденных слов
-        if n >= m:
-            i = m - 1  # счетчик проверяемого символа в строке
-            while i < n:
-                k = 0
-                flag = False
-                for j in range(m - 1, -1, -1):
-                    if s[i - k] != w[j]:
-                        if j == m - 1:
-                            pos = d[s[i]] if d.get(s[i], False) else d['*']
-                        else:
-                            pos = d[w[j]]  # смещение, если не равен не последний символ образа
-                        i += pos  # смещение счетчика строки
-                        flag = True  # если несовпадение символа, то flag = True
-                        break
-                    k += 1  # смещение для сравниваемого символа в строке
-                if not flag:  # если дошли до начала образа, значит, все его символы совпали
-                    res.append(str(i - k + 1))
-                    i += m
-        else:
-            print("Такого слова нет")
+def quick_sort(array, begin=0, end=None):
+    if end is None:
+        end = len(array) - 1
 
-        if len(res) == 0:
-            return "Такого слова нет"
-        else:
-            return res
+    return quick_sort_recursion(array, begin, end)
 
-    form_offset()
-    return search_bmh()
+
+def shell(seq):
+    inc = len(seq) // 2
+    while inc:
+        for i, el in enumerate(seq):
+            while i >= inc and seq[i - inc] > el:
+                seq[i] = seq[i - inc]
+                i -= inc
+            seq[i] = el
+        inc = 1 if inc == 2 else int(inc * 5.0 / 11)
+    return seq
 
 
 a = GUI()
 a.root.mainloop()
+
