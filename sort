@@ -22,6 +22,7 @@ class GUI:
         self.hat = Label(self.root, width=60, text="Выберите алгоритм нахождения:", fg="white", bg="#1E4E5C",
                          font=('Bahnschrift Condensed', 25))
         self.l_result = Label(self.root, text="Результат:", fg="#30546d", font=('Bahnschrift Condensed', 30))
+        self.time = Label(self.root, text="", fg="#30546d", font=('Bahnschrift Condensed', 30))
         self.sort_mas = Label(self.root, fg="#30546d", font=('Bahnschrift Condensed', 20))
         self.btn_search = Button(self.root, text="Отсортировать", bg="#6db0b3", fg="#30546d",
                                  font=('Bahnschrift Condensed', 20),
@@ -59,6 +60,7 @@ class GUI:
             self.btn_search.place(x=100, y=700, width=200)
             self.btn_rand.place(x=500, y=700, width=200)
             self.l_result.place(x=300, y=280)
+            self.time.place(x=200, y=650)
             self.sort_mas.place(x=210, y=700)
 
     def result_search(self):
@@ -77,16 +79,16 @@ class GUI:
         else:
             if self.ind_combobox == 0:
                 self.text_result.insert(1.0, bubble_sort(entry_mas))
-                print("--- %s seconds ---" % (time.time() - st_time))
+                self.time.config(text=time.time() - st_time)
             elif self.ind_combobox == 1:
                 self.text_result.insert(1.0, merge_sort(entry_mas))
-                print("--- %s seconds ---" % (time.time() - st_time))
+                self.time.config(text=time.time() - st_time)
             elif self.ind_combobox == 2:
                 self.text_result.insert(1.0, quick_sort(entry_mas))
-                print("--- %s seconds ---" % (time.time() - st_time))
+                self.time.config(text=time.time() - st_time)
             elif self.ind_combobox == 3:
                 self.text_result.insert(1.0, shell(entry_mas))
-                print("--- %s seconds ---" % (time.time() - st_time))
+                self.time.config(text=time.time() - st_time)
 
 
 def bubble_sort(arr):
@@ -190,5 +192,6 @@ def shell(seq):
 
 a = GUI()
 a.root.mainloop()
+
 
 
