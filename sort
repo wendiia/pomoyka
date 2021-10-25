@@ -1,5 +1,15 @@
 from tkinter import *
 from tkinter.ttk import Combobox
+from random import randint
+import time
+
+
+
+
+
+
+
+st_time = 0
 
 
 class GUI:
@@ -7,22 +17,34 @@ class GUI:
         """ Инициализация главного окна"""
         self.root = Tk()
         self.root.title('Нахождение слов')
-        self.root.minsize(775, 350)
+        self.root.minsize(775, 800)
 
         self.hat = Label(self.root, width=60, text="Выберите алгоритм нахождения:", fg="white", bg="#1E4E5C",
                          font=('Bahnschrift Condensed', 25))
-        self.l_result = Label(self.root, text="Результат:", fg="#30546d", font=('Bahnschrift Condensed', 20))
+        self.l_result = Label(self.root, text="Результат:", fg="#30546d", font=('Bahnschrift Condensed', 30))
         self.sort_mas = Label(self.root, fg="#30546d", font=('Bahnschrift Condensed', 20))
         self.btn_search = Button(self.root, text="Отсортировать", bg="#6db0b3", fg="#30546d",
                                  font=('Bahnschrift Condensed', 20),
                                  activebackground="#4E878D", command=self.result_search)
-        self.entry_mas = Entry(self.root, fg="black", font=('Arial', 14), width=50)
+        self.btn_rand = Button(self.root, text="Рандом", bg="#6db0b3", fg="#30546d",
+                               font=('Bahnschrift Condensed', 20),
+                               activebackground="#4E878D", command=self.rand_mas)
+        self.text = Text(self.root, width=83, height=10, bg="white", fg='black', font=14, wrap=WORD)
+        self.text_result = Text(self.root, width=83, height=10, bg="white", fg='black', font=14, wrap=WORD)
         self.combobox = Combobox(self.root, values=['Пузырек', 'Слиянием', 'Быстрая', 'Шелла'], font="Arial 20",
                                  state="readonly",
                                  justify='center', width=50)
 
         self.fill(1)  # если еще не выбран алгоритм в комбобоксе
         self.combobox.bind("<<ComboboxSelected>>", self.fill)
+
+    def rand_mas(self):
+        self.text.delete("1.0", "end")
+        mas_rand = []
+        n = randint(5000, 6000)
+        for i in range(n):
+            mas_rand.append(randint(100, 1000))
+        self.text.insert(1.0, mas_rand)
 
     def fill(self, event):
         """ Заполнение окна виджетами"""
@@ -32,35 +54,44 @@ class GUI:
             self.hat.place(x=0, y=0)
 
         else:  # при выборе алгоритма появляются дополнительные виджеты
-            self.entry_mas.place(x=100, y=100)
-            self.btn_search.place(x=300, y=200, width=200)
-            self.l_result.place(x=100, y=140)
-            self.sort_mas.place(x=210, y=140)
+            self.text.place(x=10, y=100)
+            self.text_result.place(x=10, y=350)
+            self.btn_search.place(x=100, y=700, width=200)
+            self.btn_rand.place(x=500, y=700, width=200)
+            self.l_result.place(x=300, y=280)
+            self.sort_mas.place(x=210, y=700)
 
     def result_search(self):
         """
         Происзводит соответствие с выбранным алгоритмом и выполняет поиск по выбранному алгоритму,
         выаодит результат на окно
         """
-        entry_mas = self.entry_mas.get().split()
-        entry_mas = [int(x) for x in entry_mas]
-        self.sort_mas.config(text="")
+        get_text = self.text.get(0.1, END).split()
+        entry_mas = [int(x) for x in get_text]
+
+        self.text_result.delete("1.0", "end")
 
         if len(entry_mas) == 0:
-            self.sort_mas.config(text="Введите массив")
+            self.text.insert(1.0, "Введите массив")
 
         else:
             if self.ind_combobox == 0:
-                self.sort_mas.config(text=bubble_sort(entry_mas))
+                self.text_result.insert(1.0, bubble_sort(entry_mas))
+                print("--- %s seconds ---" % (time.time() - st_time))
             elif self.ind_combobox == 1:
-                self.sort_mas.config(text=merge_sort(entry_mas))
+                self.text_result.insert(1.0, merge_sort(entry_mas))
+                print("--- %s seconds ---" % (time.time() - st_time))
             elif self.ind_combobox == 2:
-                self.sort_mas.config(text=quick_sort(entry_mas))
+                self.text_result.insert(1.0, quick_sort(entry_mas))
+                print("--- %s seconds ---" % (time.time() - st_time))
             elif self.ind_combobox == 3:
-                self.sort_mas.config(text=shell(entry_mas))
+                self.text_result.insert(1.0, shell(entry_mas))
+                print("--- %s seconds ---" % (time.time() - st_time))
 
 
 def bubble_sort(arr):
+    global st_time
+    st_time = time.time()
 
     def swap(y, j):
         arr[y], arr[j] = arr[j], arr[y]
@@ -80,6 +111,8 @@ def bubble_sort(arr):
 
 
 def merge_sort(arr):
+    global st_time
+    st_time = time.time()
     # Последнее разделение массива
     if len(arr) <= 1:
         return arr
@@ -128,10 +161,13 @@ def quick_sort_recursion(array, begin, end):
     pivot_idx = partition(array, begin, end)
     quick_sort_recursion(array, begin, pivot_idx - 1)
     quick_sort_recursion(array, pivot_idx + 1, end)
+
     return array
 
 
 def quick_sort(array, begin=0, end=None):
+    global st_time
+    st_time = time.time()
     if end is None:
         end = len(array) - 1
 
@@ -139,6 +175,8 @@ def quick_sort(array, begin=0, end=None):
 
 
 def shell(seq):
+    global st_time
+    st_time = time.time()
     inc = len(seq) // 2
     while inc:
         for i, el in enumerate(seq):
@@ -152,4 +190,5 @@ def shell(seq):
 
 a = GUI()
 a.root.mainloop()
+
 
